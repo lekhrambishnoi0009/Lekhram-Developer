@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+    <title>Number Match Master - Lekhram Bishnoi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: manipulation;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Outfit', 'Fredoka', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #020617;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-font-smoothing: antialiased;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding-left: env(safe-area-inset-left, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+        }
+
+        /* Ambient Glow Highlights */
+        .glow-bg-1 {
+            position: fixed;
+            top: -10%;
+            left: -10%;
+            width: 380px;
+            height: 380px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
+            filter: blur(50px);
+            pointer-events: none;
+            z-index: 0;
+            transform: translateZ(0);
+        }
+
+        .glow-bg-2 {
+            position: fixed;
+            bottom: -10%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(14, 165, 233, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
+            filter: blur(60px);
+            pointer-events: none;
+            z-index: 0;
+            transform: translateZ(0);
+        }
+
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 90;
+        }
+
+        /* High-Contrast Game Cards */
+        .card {
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #38bdf8;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(0.8rem, 3.2vw, 2.2rem);
+            font-weight: 700;
+            color: #fef08a;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(56, 189, 248, 0.4);
+            cursor: pointer;
+            transition: transform 0.04s ease-out, border-color 0.04s ease-out, background 0.04s ease-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+            position: relative;
+            will-change: transform, opacity;
+            transform: translateZ(0);
+        }
+
+        .grid-dense .card {
+            font-size: clamp(0.65rem, 2vw, 1.3rem) !important;
+            border-radius: 8px;
+            border-width: 1.5px;
+        }
+
+        .grid-ultra-dense .card {
+            font-size: clamp(0.5rem, 1.4vw, 1rem) !important;
+            border-radius: 6px;
+            border-width: 1.2px;
+        }
+
+        .card:active {
+            transform: scale(0.92) translateZ(0);
+        }
+
+        .card.selected {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+            border-color: #ffffff !important;
+            color: #ffffff !important;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8) !important;
+            transform: scale(1.04) translateZ(0) !important;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.9), inset 0 1px 3px rgba(255, 255, 255, 0.6) !important;
+            z-index: 10;
+        }
+
+        /* Instant Vanishing upon Match */
+        .card.vanished {
+            opacity: 0 !important;
+            transform: scale(0) !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
+            transition: none !important;
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0) translateZ(0); }
+            20%, 60% { transform: translateX(-6px) translateZ(0); }
+            40%, 80% { transform: translateX(6px) translateZ(0); }
+        }
+
+        .card.shake {
+            animation: wrongShake 0.15s cubic-bezier(.36,.07,.19,.97) both;
+            background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%) !important;
+            border-color: #fca5a5 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.8) !important;
+        }
+
+        /* Professional Button Styling */
+        .btn-pro {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid rgba(245, 158, 11, 0.5);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transition: all 0.12s ease;
+            transform: translateZ(0);
+        }
+        .btn-pro:hover {
+            border-color: rgba(245, 158, 11, 0.9);
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px) translateZ(0);
+        }
+        .btn-pro:active {
+            transform: translateY(1px) scale(0.96) translateZ(0);
+        }
+
+        .btn-gold-pro {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: 2px solid #fef08a;
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            transition: all 0.12s ease;
+            transform: translateZ(0);
+        }
+        .btn-gold-pro:hover {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px) translateZ(0);
+        }
+        .btn-gold-pro:active {
+            transform: translateY(1px) scale(0.96) translateZ(0);
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+
+        .glow-title {
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.8), 0 0 40px rgba(245, 158, 11, 0.4);
+        }
+
+        @keyframes fillBarFast {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        .animate-progress-fast {
+            animation: fillBarFast 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center relative bg-slate-950">
+
+    <div class="glow-bg-1"></div>
+    <div class="glow-bg-2"></div>
+    <canvas id="particleCanvas"></canvas>
+
+    <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-between p-8 bg-slate-950 transition-opacity duration-300">
+        <div class="w-full flex-1 flex flex-col items-center justify-center text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/50 text-amber-400 text-xs font-bold uppercase tracking-widest mb-6 shadow-lg shadow-amber-500/10">
+                ✨ Pro APK Offline Edition (200 Levels)
+            </div>
+
+            <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white mb-2">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-200">
+                    lekhram bishnoi
+                </span>
+            </h1>
+            <p class="text-slate-400 text-xs sm:text-sm font-bold tracking-widest uppercase">PRESENTS</p>
+
+            <div class="mt-8">
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-100 tracking-wider uppercase">
+                    Number Match Master
+                </h2>
+            </div>
+        </div>
+
+        <div class="w-full max-w-xs flex flex-col items-center gap-3 mb-6">
+            <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                <div class="h-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-full animate-progress-fast"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="menuScreen" class="hidden fixed inset-0 z-40 flex flex-col items-center justify-between p-4 sm:p-6 bg-slate-950">
+        <div class="w-full max-w-xl mt-4 sm:mt-6 flex items-center justify-between px-2">
+            <div class="flex flex-col items-start">
+                <div class="text-[10px] font-black tracking-widest text-amber-400 uppercase">
+                    LEKHRAM BISHNOI
+                </div>
+                <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight glow-title uppercase">
+                    Number Match
+                </h1>
+            </div>
+        </div>
+
+        <div id="levelsContainer" class="w-full max-w-xl my-auto py-2">
+            <div id="levelsGrid" class="grid grid-cols-4 sm:grid-cols-5 gap-2.5 max-h-[58vh] overflow-y-auto p-2">
+                <!-- Dynamically generated level cards -->
+            </div>
+        </div>
+
+        <!-- Bottom Navigation Dock -->
+        <div class="w-full max-w-xl mb-4 sm:mb-6 flex justify-center items-center gap-3 px-2">
+            <button id="openLevelsBtn" class="flex-1 h-14 flex items-center justify-center gap-2.5 rounded-2xl btn-pro text-amber-400 font-bold">
+                <span class="text-xl">🎮</span>
+                <span class="text-xs sm:text-sm uppercase tracking-widest text-amber-300 font-black">LEVELS</span>
+            </button>
+
+            <button id="openCoinsPageBtn" class="flex-1 h-14 flex items-center justify-center gap-2.5 rounded-2xl btn-pro text-amber-400 font-bold">
+                <span class="text-xl">🪙</span>
+                <span class="text-xs sm:text-sm uppercase tracking-widest text-amber-300 font-black">COINS</span>
+            </button>
+
+            <button id="openSettingsPageBtn" class="flex-1 h-14 flex items-center justify-center gap-2.5 rounded-2xl btn-pro text-amber-400 font-bold">
+                <svg class="w-5 h-5 fill-amber-400 filter drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]" viewBox="0 0 24 24">
+                    <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"/>
+                </svg>
+                <span class="text-xs sm:text-sm uppercase tracking-widest text-amber-300 font-black">SETTINGS</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="coinsScreen" class="hidden fixed inset-0 z-40 flex flex-col items-center justify-between p-6 bg-slate-950">
+        <div class="w-full max-w-md mt-4 grid grid-cols-3 items-center px-2">
+            <div class="flex justify-start">
+                <button id="backFromCoinsBtn" class="h-11 px-5 flex items-center justify-center rounded-2xl btn-pro text-amber-400 font-black text-xs uppercase tracking-widest shadow-lg">
+                    MENU
+                </button>
+            </div>
+            <div class="text-center">
+                <h1 class="text-base sm:text-xl font-black text-white tracking-wide uppercase whitespace-nowrap">Coin Balance</h1>
+            </div>
+            <div></div>
+        </div>
+
+        <div class="w-full max-w-md my-auto flex flex-col items-center text-center p-6 glass-panel rounded-3xl border border-amber-500/40 shadow-2xl">
+            <div class="text-6xl mb-4 filter drop-shadow">🪙</div>
+            <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Total Collected Coins</h2>
+            <div id="fullCoinBalance" class="text-5xl font-black text-amber-300 tracking-tight mb-4">0</div>
+            <p class="text-xs text-slate-300 leading-relaxed font-medium">
+                Complete more levels successfully to earn 20 coins per level!
+            </p>
+        </div>
+
+        <div class="w-full max-w-md mb-4"></div>
+    </div>
+
+    <div id="settingsScreen" class="hidden fixed inset-0 z-40 flex flex-col items-center justify-between p-6 bg-slate-950">
+        <div class="w-full max-w-md mt-4 grid grid-cols-3 items-center px-2">
+            <div class="flex justify-start">
+                <button id="backFromSettingsBtn" class="h-11 px-5 flex items-center justify-center rounded-2xl btn-pro text-amber-400 font-black text-xs uppercase tracking-widest shadow-lg">
+                    MENU
+                </button>
+            </div>
+            <div class="text-center">
+                <h1 class="text-base sm:text-xl font-black text-white tracking-wide uppercase whitespace-nowrap">Game Settings</h1>
+            </div>
+            <div></div>
+        </div>
+
+        <div class="w-full max-w-md my-auto flex flex-col gap-4">
+            <button id="toggleGlobalSoundBtn" class="w-full btn-pro text-amber-300 font-bold py-4 rounded-2xl flex items-center justify-center gap-3 text-sm tracking-wide">
+                <span id="globalModalSoundIcon" class="text-xl">🔊</span>
+                <span id="globalModalSoundText">SOUND: ON</span>
+            </button>
+
+            <button id="openPrivacyFullBtn" class="w-full btn-pro text-slate-200 font-bold py-4 rounded-2xl flex items-center justify-center gap-3 text-sm tracking-wide">
+                <span class="text-xl">🛡️</span> PRIVACY POLICY
+            </button>
+
+            <button id="openDevFullBtn" class="w-full btn-pro text-slate-200 font-bold py-4 rounded-2xl flex items-center justify-center gap-3 text-sm tracking-wide">
+                <span class="text-xl">👨‍💻</span> DEVELOPER DETAILS
+            </button>
+
+            <button id="triggerResetConfirmBtn" class="w-full bg-red-500/20 hover:bg-red-500/30 active:scale-95 text-red-400 font-bold py-4 rounded-2xl border border-red-500/40 transition-all flex items-center justify-center gap-3 shadow-lg text-sm tracking-wide mt-2">
+                <span class="text-xl">🔄</span> RESET ALL PROGRESS
+            </button>
+        </div>
+
+        <div class="w-full max-w-md mb-4"></div>
+    </div>
+
+    <div id="privacyScreen" class="hidden fixed inset-0 z-40 flex flex-col items-center justify-between p-6 bg-slate-950">
+        <div class="w-full max-w-md mt-4 grid grid-cols-3 items-center px-2">
+            <div class="flex justify-start">
+                <button id="backFromPrivacyBtn" class="h-11 px-5 flex items-center justify-center rounded-2xl btn-pro text-amber-400 font-black text-xs uppercase tracking-widest shadow-lg">
+                    SETTINGS
+                </button>
+            </div>
+            <div class="text-center">
+                <h1 class="text-base sm:text-xl font-black text-white tracking-wide uppercase whitespace-nowrap">Privacy Policy</h1>
+            </div>
+            <div></div>
+        </div>
+
+        <div class="w-full max-w-md my-auto glass-panel rounded-3xl p-6 shadow-2xl border border-amber-500/40 flex flex-col max-h-[75vh] overflow-y-auto text-left text-sm text-slate-300 space-y-4 font-medium leading-relaxed">
+            <p><strong class="text-amber-400">1. Data Privacy:</strong> 100% Offline Android APK game. No data is collected, stored online, or transmitted anywhere.</p>
+            <p><strong class="text-amber-400">2. Local Storage:</strong> Game progress, unlocked levels, star ratings, and coins are securely saved locally on your device.</p>
+            <p><strong class="text-amber-400">3. Child Safety & Ads:</strong> Completely safe, ad-free, and suitable for players of all ages.</p>
+            <p><strong class="text-amber-400">4. Offline Ready:</strong> Runs fully offline with zero internet requirement in APK format.</p>
+        </div>
+
+        <div class="w-full max-w-md mb-4"></div>
+    </div>
+
+    <div id="devScreen" class="hidden fixed inset-0 z-40 flex flex-col items-center justify-between p-6 bg-slate-950">
+        <div class="w-full max-w-md mt-4 grid grid-cols-3 items-center px-2">
+            <div class="flex justify-start">
+                <button id="backFromDevBtn" class="h-11 px-5 flex items-center justify-center rounded-2xl btn-pro text-amber-400 font-black text-xs uppercase tracking-widest shadow-lg">
+                    SETTINGS
+                </button>
+            </div>
+            <div class="text-center">
+                <h1 class="text-base sm:text-xl font-black text-white tracking-wide uppercase whitespace-nowrap">Developer</h1>
+            </div>
+            <div></div>
+        </div>
+
+        <div class="w-full max-w-md my-auto glass-panel rounded-3xl p-6 text-center shadow-2xl border border-amber-500/40 flex flex-col">
+            <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-500 via-orange-500 to-yellow-300 p-0.5 mx-auto mb-3 shadow-lg shadow-amber-500/20">
+                <div class="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-3xl font-black text-amber-400">
+                    LB
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-black text-white tracking-tight uppercase">Lekhram Bishnoi</h2>
+            <p class="text-amber-400 text-xs font-bold tracking-widest uppercase mb-5">Lead Game Developer</p>
+
+            <div class="bg-slate-900/90 rounded-2xl p-4 border border-slate-800/80 text-left text-sm space-y-3 text-slate-300 mb-4 font-medium">
+                <div class="flex justify-between items-center border-b border-slate-800/60 pb-2">
+                    <span class="text-slate-400">Game Name:</span>
+                    <span class="font-bold text-white">Number Match Master</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-slate-800/60 pb-2">
+                    <span class="text-slate-400">Developer:</span>
+                    <span class="font-bold text-amber-400">Lekhram Bishnoi</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-slate-800/60 pb-2">
+                    <span class="text-slate-400">Audio Engine:</span>
+                    <span class="font-bold text-emerald-400">Pro WebView Synthesizer</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400">Levels:</span>
+                    <span class="font-bold text-sky-400">200 Progressive Levels</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full max-w-md mb-4"></div>
+    </div>
+
+    <div id="gameScreen" class="hidden fixed inset-0 z-30 flex flex-col justify-between bg-slate-950 p-2 sm:p-3">
+        <div class="absolute top-3 left-3 right-3 z-40 flex items-center justify-between pointer-events-none">
+            <button id="backToMenuBtn" class="pointer-events-auto h-11 px-4 flex items-center justify-center rounded-2xl btn-pro text-amber-400 font-black text-xs uppercase tracking-widest">
+                MENU
+            </button>
+
+            <div class="glass-panel px-5 py-2 rounded-full border border-amber-500/50 shadow-xl">
+                <span id="currentLevelBadge" class="text-sm font-black text-amber-400 tracking-wider">LEVEL 1</span>
+            </div>
+
+            <div class="flex items-center gap-2 pointer-events-auto">
+                <button id="openLevelSettingsBtn" title="Level Settings" class="h-11 w-11 flex items-center justify-center rounded-2xl btn-pro text-amber-400">
+                    <svg class="w-6 h-6 fill-amber-400 filter drop-shadow-[0_0_6px_rgba(245,158,11,0.5)]" viewBox="0 0 24 24">
+                        <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="gameGridContainer" class="w-full h-full pt-16 pb-2 flex items-center justify-center overflow-hidden">
+            <div id="gameBoard" class="w-full h-full grid gap-2.5 p-1"></div>
+        </div>
+    </div>
+
+    <div id="levelSettingsModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl p-6 max-w-xs w-full text-center shadow-2xl border border-amber-500/40">
+            <div class="text-4xl mb-2">⚙</div>
+            <h2 class="text-xl font-black text-white mb-1 uppercase tracking-wide">Level Settings</h2>
+            <p class="text-slate-400 text-xs mb-6 uppercase tracking-wider">Options for current level</p>
+
+            <div class="flex flex-col gap-3">
+                <button id="resetLevelBtn" class="w-full btn-pro text-amber-300 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2">
+                    <span>🔄</span> RESTART LEVEL
+                </button>
+                <button id="levelSettingsHomeBtn" class="w-full btn-pro text-slate-200 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2">
+                    <span>🏠</span> MAIN MENU
+                </button>
+                <button id="closeLevelSettingsBtn" class="w-full bg-slate-900/90 hover:bg-slate-800 text-slate-400 font-semibold py-3 rounded-2xl text-xs tracking-wider uppercase border border-slate-800">
+                    Resume
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="lockedLevelModal" class="fixed inset-0 bg-black/85 z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl p-6 max-w-xs w-full text-center shadow-2xl border border-amber-500/50">
+            <div class="text-4xl mb-2">🔒</div>
+            <h2 class="text-xl font-black text-amber-400 mb-1 uppercase tracking-wide">Level Locked</h2>
+            <p id="lockedLevelText" class="text-slate-300 text-xs mb-5 font-medium leading-relaxed">
+                Complete the previous level first before playing this level!
+            </p>
+            <button id="closeLockedModalBtn" class="w-full btn-pro text-slate-300 font-bold py-3 rounded-2xl text-xs tracking-widest uppercase">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <div id="resetConfirmModal" class="fixed inset-0 bg-black/85 z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl p-6 max-w-xs w-full text-center shadow-2xl border border-red-500/50">
+            <div class="text-4xl mb-2">⚠️</div>
+            <h2 class="text-xl font-black text-red-400 mb-2 uppercase tracking-wide">Reset Game?</h2>
+            <p class="text-slate-300 text-xs mb-6 font-medium leading-relaxed">
+                Are you sure you want to reset all 200 levels, stars, and collected coins? This action cannot be undone.
+            </p>
+            <div class="flex flex-col gap-3">
+                <button id="confirmResetBtn" class="w-full bg-red-600 hover:bg-red-500 text-white font-black py-3.5 rounded-2xl shadow-lg text-xs tracking-widest uppercase">
+                    YES, RESET EVERYTHING
+                </button>
+                <button id="cancelResetBtn" class="w-full btn-pro text-slate-300 font-bold py-3 rounded-2xl text-xs tracking-widest uppercase">
+                    CANCEL
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="victoryModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl p-6 max-w-xs w-full text-center shadow-2xl border border-amber-500/50">
+            <div class="text-5xl mb-2">🏆</div>
+            <h2 class="text-2xl font-black text-white mb-1 tracking-tight uppercase">Level Completed!</h2>
+            <p id="victorySubtext" class="text-slate-300 text-xs mb-3 uppercase tracking-wider font-semibold">Awesome! You matched all numbers.</p>
+
+            <div id="modalStars" class="text-4xl text-amber-400 mb-4 tracking-widest">
+                ⭐⭐⭐
+            </div>
+
+            <div class="bg-amber-500/10 border border-amber-500/40 p-3 rounded-2xl mb-5 flex items-center justify-center gap-2">
+                <span class="text-2xl">🪙</span>
+                <span class="text-sm font-black text-amber-300">+20 Coins Earned!</span>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button id="modalNextBtn" class="w-full btn-gold-pro text-slate-950 font-black py-3.5 rounded-2xl uppercase tracking-wide">
+                    NEXT ▶
+                </button>
+                <button id="modalHomeBtn" class="w-full btn-pro text-slate-200 font-bold py-3 rounded-2xl text-xs uppercase tracking-widest">
+                    🏠 MAIN MENU
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const StorageManager = {
+            getItem(key, defaultValue) {
+                try {
+                    const value = localStorage.getItem(key);
+                    return value !== null ? value : defaultValue;
+                } catch (e) {
+                    return defaultValue;
+                }
+            },
+            setItem(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {}
+            },
+            removeItem(key) {
+                try {
+                    localStorage.removeItem(key);
+                } catch (e) {}
+            }
+        };
+
+        class ProAudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = StorageManager.getItem('numMatch_soundEnabled', 'true') !== 'false';
+            }
+
+            initCtx() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        try {
+                            this.ctx = new AudioCtx();
+                        } catch (e) {}
+                    }
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume().catch(() => {});
+                }
+            }
+
+            toggleSound() {
+                this.enabled = !this.enabled;
+                StorageManager.setItem('numMatch_soundEnabled', this.enabled);
+                if (this.enabled) {
+                    this.playTap();
+                }
+                return this.enabled;
+            }
+
+            playTap() {
+                if (!this.enabled) return;
+                try {
+                    this.initCtx();
+                    if (!this.ctx) return;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(480, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(960, this.ctx.currentTime + 0.03);
+                    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.03);
+                } catch (e) {}
+            }
+
+            playMatch() {
+                if (!this.enabled) return;
+                try {
+                    this.initCtx();
+                    if (!this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.025);
+                        gain.gain.setValueAtTime(0.1, now + idx * 0.025);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.025 + 0.1);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + idx * 0.025);
+                        osc.stop(now + idx * 0.025 + 0.1);
+                    });
+                } catch (e) {}
+            }
+
+            playWrong() {
+                if (!this.enabled) return;
+                try {
+                    this.initCtx();
+                    if (!this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, now);
+                    osc.frequency.linearRampToValueAtTime(80, now + 0.08);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } catch (e) {}
+            }
+
+            playWin() {
+                if (!this.enabled) return;
+                try {
+                    this.initCtx();
+                    if (!this.ctx) return;
+                    const now = this.ctx.currentTime;
+                    const chords = [523.25, 659.25, 783.99, 1046.50];
+                    chords.forEach((f, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, now + idx * 0.04);
+                        gain.gain.setValueAtTime(0.12, now + idx * 0.04);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.2);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + idx * 0.04);
+                        osc.stop(now + idx * 0.04 + 0.2);
+                    });
+                } catch (e) {}
+            }
+        }
+
+        const soundEngine = new ProAudioEngine();
+
+        class UltraParticleEngine {
+            constructor() {
+                this.canvas = document.getElementById('particleCanvas');
+                this.ctx = this.canvas.getContext('2d', { alpha: true });
+                this.particles = [];
+                this.animating = false;
+                this.resize();
+                window.addEventListener('resize', () => this.resize(), { passive: true });
+            }
+
+            resize() {
+                if (!this.canvas) return;
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            explode(x, y) {
+                const colors = ['#f59e0b', '#38bdf8', '#10b981', '#fef08a'];
+                for (let i = 0; i < 6; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 5 + 2;
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        radius: Math.random() * 2.5 + 1.5,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        alpha: 1,
+                        decay: Math.random() * 0.12 + 0.1
+                    });
+                }
+                if (!this.animating) {
+                    this.animating = true;
+                    requestAnimationFrame(() => this.update());
+                }
+            }
+
+            update() {
+                if (!this.ctx || !this.canvas) return;
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vx *= 0.85;
+                    p.vy *= 0.85;
+                    p.alpha -= p.decay;
+
+                    if (p.alpha <= 0) {
+                        this.particles.splice(i, 1);
+                        continue;
+                    }
+
+                    this.ctx.save();
+                    this.ctx.globalAlpha = p.alpha;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fill();
+                    this.ctx.restore();
+                }
+
+                if (this.particles.length > 0) {
+                    requestAnimationFrame(() => this.update());
+                } else {
+                    this.animating = false;
+                }
+            }
+        }
+
+        const particleEngine = new UltraParticleEngine();
+
+        const LEVEL_CONFIGS = [];
+        for (let i = 1; i <= 200; i++) {
+            let cols, rows, genType;
+            if (i <= 15) {
+                cols = i <= 3 ? 3 : 4;
+                rows = i <= 2 ? 2 : (i <= 8 ? 4 : 5);
+                genType = "simple";
+            } else if (i <= 50) {
+                cols = 4;
+                rows = i <= 30 ? 6 : 8;
+                genType = i % 2 === 0 ? "tens" : "mirrors2";
+            } else if (i <= 100) {
+                cols = 6;
+                rows = i <= 75 ? 6 : 8;
+                genType = i % 3 === 0 ? "tricky2" : (i % 3 === 1 ? "hundreds" : "mirrors3");
+            } else if (i <= 150) {
+                cols = 8;
+                rows = i <= 125 ? 6 : 8;
+                genType = i % 4 === 0 ? "thousands" : (i % 4 === 1 ? "extreme" : (i % 4 === 2 ? "trickymirror4" : "pattern4"));
+            } else {
+                cols = 10;
+                rows = i <= 175 ? 6 : 8;
+                genType = i % 3 === 0 ? "dense5" : (i % 3 === 1 ? "ultimate5" : "master60");
+            }
+
+            let totalCells = cols * rows;
+            if (totalCells % 2 !== 0) {
+                cols += 1;
+                totalCells = cols * rows;
+            }
+            const pairs = totalCells / 2;
+            LEVEL_CONFIGS.push({ level: i, cols, rows, pairs, genType });
+        }
+
+        function generateLevelNumbers(config) {
+            const totalCells = config.cols * config.rows;
+            const pairsCount = config.pairs;
+            let pool = [];
+            switch (config.genType) {
+                case "simple": pool = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]; break;
+                case "tens": pool = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300]; break;
+                case "mirrors2": pool = [12, 21, 13, 31, 23, 32, 14, 41, 15, 51, 16, 61, 17, 71, 24, 42, 25, 52, 26, 62, 34, 43, 35, 53, 36, 63, 45, 54, 46, 64]; break;
+                case "tricky2": pool = [17, 71, 69, 96, 18, 81, 80, 89, 88, 11, 27, 72, 38, 83, 47, 74, 58, 85, 39, 93, 48, 84, 59, 95, 67, 76, 49, 94]; break;
+                case "hundreds": pool = [108, 180, 801, 810, 209, 290, 902, 920, 307, 703, 730, 370, 408, 804, 509, 905, 109, 901, 207, 702]; break;
+                case "mirrors3": pool = [609, 690, 906, 960, 809, 890, 908, 980, 107, 170, 701, 710, 208, 802, 309, 903, 409, 904, 507, 705]; break;
+                case "thousands": pool = [1001, 1010, 1100, 7007, 7070, 7700, 8008, 8080, 8800, 9009, 9090, 9900, 6006, 6060, 5005, 5050, 4004, 4040]; break;
+                case "extreme": pool = [6969, 9696, 6699, 9966, 6996, 9669, 8181, 1818, 8811, 1188, 8118, 1881, 7272, 2727, 5544, 4455]; break;
+                case "trickymirror4": pool = [1017, 1071, 1701, 1710, 7011, 7101, 7110, 8089, 8908, 8980, 9088, 9808, 5059, 5905, 6069, 6906]; break;
+                case "pattern4": pool = [1234, 4321, 1324, 4231, 2143, 3412, 1423, 3241, 5678, 8765, 5768, 8675, 1243, 3421, 5867, 7685]; break;
+                case "extreme4": pool = [1001, 1010, 1100, 7007, 7070, 7700, 8008, 8080, 8800, 9009, 9090, 9900, 6006, 6060, 5005, 5050, 3003, 3030]; break;
+                case "mirrors5": pool = [10001, 10010, 10100, 11000, 70007, 70070, 70700, 77000, 80008, 80080, 80800, 88000, 60006, 60060, 50005, 50050]; break;
+                case "tricky5": pool = [10107, 10701, 17001, 70011, 70101, 71001, 60609, 60906, 69006, 90066, 90606, 96006, 50105, 50501, 40104, 40401]; break;
+                case "dense5": pool = [11111, 22222, 33333, 44444, 55555, 66666, 77777, 88888, 99999, 12345, 54321, 13524, 24680, 13579, 24691, 86420]; break;
+                case "ultimate5": pool = [12321, 23432, 34543, 45654, 56765, 67876, 78987, 89098, 90109, 10201, 20302, 30403, 40504, 50605, 60706, 70807]; break;
+                case "master60": pool = [100001, 100010, 100100, 101000, 110000, 700007, 700070, 700700, 707000, 770000, 800008, 800080, 800800, 808000, 880000]; break;
+            }
+            while (pool.length < pairsCount) {
+                pool.push((pool.length + 1) * 111);
+            }
+            const selectedBase = pool.slice(0, pairsCount);
+            
+            let cardValues = new Array(totalCells);
+            let availableIndices = [];
+            for (let i = 0; i < totalCells; i++) availableIndices.push(i);
+
+            for (let i = availableIndices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availableIndices[i], availableIndices[j]] = [availableIndices[j], availableIndices[i]];
+            }
+
+            // Strategic placement: split pair indices between first half and second half of board for challenge
+            const halfSize = pairsCount;
+            for (let i = 0; i < pairsCount; i++) {
+                const val = selectedBase[i];
+                const idx1 = availableIndices[i];
+                const idx2 = availableIndices[i + halfSize];
+                cardValues[idx1] = val;
+                cardValues[idx2] = val;
+            }
+
+            return cardValues;
+        }
+
+        let unlockedLevels = parseInt(StorageManager.getItem('numMatch_unlocked', '1')) || 1;
+        let levelStars = JSON.parse(StorageManager.getItem('numMatch_stars', '{}')) || {};
+        let userCoins = parseInt(StorageManager.getItem('numMatch_coins', '0')) || 0;
+        let lastPlayedLevel = parseInt(StorageManager.getItem('numMatch_lastLevel', '1')) || 1;
+        let currentLevel = lastPlayedLevel;
+
+        let firstCard = null;
+        let secondCard = null;
+        let lockBoard = false;
+        let matchesFound = 0;
+        let moves = 0;
+        let totalPairs = 0;
+
+        function hideAllScreens() {
+            document.getElementById('splashScreen').style.display = 'none';
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('coinsScreen').style.display = 'none';
+            document.getElementById('settingsScreen').style.display = 'none';
+            document.getElementById('privacyScreen').style.display = 'none';
+            document.getElementById('devScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('levelSettingsModal').classList.add('hidden');
+            document.getElementById('lockedLevelModal').classList.add('hidden');
+            document.getElementById('resetConfirmModal').classList.add('hidden');
+            document.getElementById('victoryModal').classList.add('hidden');
+        }
+
+        function showMenuScreen() {
+            soundEngine.playTap();
+            hideAllScreens();
+            document.getElementById('menuScreen').style.display = 'flex';
+            renderLevelsGrid();
+        }
+
+        function showCoinsScreen() {
+            soundEngine.playTap();
+            hideAllScreens();
+            document.getElementById('fullCoinBalance').textContent = userCoins;
+            document.getElementById('coinsScreen').style.display = 'flex';
+        }
+
+        function showSettingsScreen() {
+            soundEngine.playTap();
+            hideAllScreens();
+            updateSoundUI();
+            document.getElementById('settingsScreen').style.display = 'flex';
+        }
+
+        function showPrivacyScreen() {
+            soundEngine.playTap();
+            hideAllScreens();
+            document.getElementById('privacyScreen').style.display = 'flex';
+        }
+
+        function showDevScreen() {
+            soundEngine.playTap();
+            hideAllScreens();
+            document.getElementById('devScreen').style.display = 'flex';
+        }
+
+        window.addEventListener('load', () => {
+            updateSoundUI();
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    showMenuScreen();
+                }, 200);
+            }, 2000);
+        });
+
+        function updateSoundUI() {
+            const isEnabled = soundEngine.enabled;
+            const icon = isEnabled ? '🔊' : '🔇';
+            document.getElementById('globalModalSoundIcon').textContent = icon;
+            document.getElementById('globalModalSoundText').textContent = isEnabled ? 'SOUND: ON' : 'SOUND: OFF';
+        }
+
+        function renderLevelsGrid() {
+            const levelsGrid = document.getElementById('levelsGrid');
+            levelsGrid.innerHTML = '';
+
+            const fragment = document.createDocumentFragment();
+            LEVEL_CONFIGS.forEach((config) => {
+                const i = config.level;
+                const isUnlocked = i <= unlockedLevels;
+                const stars = levelStars[i] || 0;
+                
+                const levelBtn = document.createElement('button');
+                levelBtn.className = `flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl font-bold border transition-all ${
+                    isUnlocked 
+                        ? 'glass-panel border-amber-500/50 hover:border-amber-400 text-white cursor-pointer active:scale-95 shadow-md shadow-amber-500/10' 
+                        : 'bg-slate-900/80 border-slate-800 text-slate-400 cursor-pointer active:scale-95 shadow-sm'
+                }`;
+
+                let starsHtml = isUnlocked && stars > 0 
+                    ? `<div class="text-[10px] sm:text-xs text-amber-400 mt-1">${'⭐'.repeat(stars)}</div>`
+                    : (isUnlocked ? `<div class="text-[10px] text-amber-400/50 mt-1 font-bold">⭐⭐⭐</div>` : `<div class="text-[10px] text-slate-500 mt-1 font-bold">🔒</div>`);
+
+                levelBtn.innerHTML = `
+                    <span class="text-sm sm:text-base font-black tracking-tight uppercase">Level ${i}</span>
+                    ${starsHtml}
+                `;
+
+                levelBtn.addEventListener('click', () => {
+                    if (isUnlocked) {
+                        soundEngine.playTap();
+                        startLevel(i);
+                    } else {
+                        soundEngine.playWrong();
+                        document.getElementById('lockedLevelText').textContent = `Level ${i} is locked! Complete Level ${i - 1} first.`;
+                        document.getElementById('lockedLevelModal').classList.remove('hidden');
+                    }
+                });
+
+                fragment.appendChild(levelBtn);
+            });
+            levelsGrid.appendChild(fragment);
+        }
+
+        document.getElementById('closeLockedModalBtn').addEventListener('click', () => {
+            soundEngine.playTap();
+            document.getElementById('lockedLevelModal').classList.add('hidden');
+        });
+
+        document.getElementById('openCoinsPageBtn').addEventListener('click', showCoinsScreen);
+        document.getElementById('backFromCoinsBtn').addEventListener('click', showMenuScreen);
+
+        document.getElementById('openSettingsPageBtn').addEventListener('click', showSettingsScreen);
+        document.getElementById('backFromSettingsBtn').addEventListener('click', showMenuScreen);
+
+        document.getElementById('openPrivacyFullBtn').addEventListener('click', showPrivacyScreen);
+        document.getElementById('backFromPrivacyBtn').addEventListener('click', showSettingsScreen);
+
+        document.getElementById('openDevFullBtn').addEventListener('click', showDevScreen);
+        document.getElementById('backFromDevBtn').addEventListener('click', showSettingsScreen);
+
+        document.getElementById('toggleGlobalSoundBtn').addEventListener('click', () => {
+            soundEngine.toggleSound();
+            updateSoundUI();
+        });
+
+        const resetConfirmModal = document.getElementById('resetConfirmModal');
+        document.getElementById('triggerResetConfirmBtn').addEventListener('click', () => {
+            soundEngine.playTap();
+            resetConfirmModal.classList.remove('hidden');
+        });
+        document.getElementById('cancelResetBtn').addEventListener('click', () => {
+            soundEngine.playTap();
+            resetConfirmModal.classList.add('hidden');
+        });
+        document.getElementById('confirmResetBtn').addEventListener('click', () => {
+            soundEngine.playTap();
+            StorageManager.removeItem('numMatch_unlocked');
+            StorageManager.removeItem('numMatch_stars');
+            StorageManager.removeItem('numMatch_coins');
+            StorageManager.removeItem('numMatch_lastLevel');
+            unlockedLevels = 1;
+            levelStars = {};
+            userCoins = 0;
+            lastPlayedLevel = 1;
+            resetConfirmModal.classList.add('hidden');
+            showMenuScreen();
+        });
+
+        function startLevel(levelNum) {
+            currentLevel = levelNum;
+            StorageManager.setItem('numMatch_lastLevel', currentLevel);
+            const config = LEVEL_CONFIGS.find(c => c.level === levelNum);
+            
+            hideAllScreens();
+            document.getElementById('gameScreen').style.display = 'flex';
+            document.getElementById('currentLevelBadge').textContent = `LEVEL ${currentLevel}`;
+            
+            moves = 0;
+            matchesFound = 0;
+            firstCard = null;
+            secondCard = null;
+            lockBoard = false;
+            totalPairs = config.pairs;
+
+            const numbers = generateLevelNumbers(config);
+
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+            
+            if (config.cols >= 10) {
+                gameBoard.classList.add('grid-ultra-dense');
+                gameBoard.classList.remove('grid-dense');
+            } else if (config.cols >= 8) {
+                gameBoard.classList.add('grid-dense');
+                gameBoard.classList.remove('grid-ultra-dense');
+            } else {
+                gameBoard.classList.remove('grid-dense', 'grid-ultra-dense');
+            }
+
+            gameBoard.style.gridTemplateColumns = `repeat(${config.cols}, minmax(0, 1fr))`;
+            gameBoard.style.gridTemplateRows = `repeat(${config.rows}, minmax(0, 1fr))`;
+
+            const fragment = document.createDocumentFragment();
+            numbers.forEach((num, idx) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.number = num;
+                card.dataset.index = idx;
+                card.textContent = num;
+
+                card.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
+                    handleCardTap(card);
+                }, { passive: false });
+
+                fragment.appendChild(card);
+            });
+            gameBoard.appendChild(fragment);
+        }
+
+        function handleCardTap(card) {
+            if (lockBoard) return;
+            if (card === firstCard) return;
+            if (card.classList.contains('vanished')) return;
+
+            soundEngine.playTap();
+            card.classList.add('selected');
+
+            if (!firstCard) {
+                firstCard = card;
+                return;
+            }
+
+            secondCard = card;
+            moves++;
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            const isMatch = firstCard.dataset.number === secondCard.dataset.number;
+
+            if (isMatch) {
+                soundEngine.playMatch();
+                const card1 = firstCard;
+                const card2 = secondCard;
+                lockBoard = true;
+
+                const winW = window.innerWidth;
+                const winH = window.innerHeight;
+                particleEngine.explode(winW / 2 - 40, winH / 2);
+                particleEngine.explode(winW / 2 + 40, winH / 2);
+
+                card1.classList.add('vanished');
+                card2.classList.add('vanished');
+                matchesFound++;
+
+                resetSelection();
+                if (matchesFound === totalPairs) {
+                    handleLevelVictory();
+                }
+
+            } else {
+                soundEngine.playWrong();
+                lockBoard = true;
+                const card1 = firstCard;
+                const card2 = secondCard;
+
+                card1.classList.add('shake');
+                card2.classList.add('shake');
+
+                setTimeout(() => {
+                    card1.classList.remove('selected', 'shake');
+                    card2.classList.remove('selected', 'shake');
+                    resetSelection();
+                }, 150);
+            }
+        }
+
+        function resetSelection() {
+            firstCard = null;
+            secondCard = null;
+            lockBoard = false;
+        }
+
+        function handleLevelVictory() {
+            soundEngine.playWin();
+
+            let stars = 3;
+            const minMoves = totalPairs;
+            if (moves > minMoves + 12) stars = 1;
+            else if (moves > minMoves + 6) stars = 2;
+
+            levelStars[currentLevel] = Math.max(levelStars[currentLevel] || 0, stars);
+            if (currentLevel === unlockedLevels && unlockedLevels < 200) {
+                unlockedLevels++;
+            }
+
+            userCoins += 20;
+            StorageManager.setItem('numMatch_coins', userCoins);
+            StorageManager.setItem('numMatch_unlocked', unlockedLevels);
+            StorageManager.setItem('numMatch_stars', JSON.stringify(levelStars));
+
+            document.getElementById('modalStars').textContent = '⭐'.repeat(stars);
+            
+            const nextBtn = document.getElementById('modalNextBtn');
+            if (currentLevel >= 200) {
+                nextBtn.textContent = 'GAME COMPLETED 🏆';
+                document.getElementById('victorySubtext').textContent = 'Amazing! You completed all 200 levels!';
+            } else {
+                nextBtn.textContent = 'NEXT ▶';
+                document.getElementById('victorySubtext').textContent = 'Awesome! You matched all numbers.';
+            }
+
+            setTimeout(() => {
+                document.getElementById('victoryModal').classList.remove('hidden');
+            }, 100);
+        }
+
+        document.getElementById('backToMenuBtn').addEventListener('click', showMenuScreen);
+        document.getElementById('openLevelsBtn').addEventListener('click', () => {
+            soundEngine.playTap();
+            document.getElementById('levelsContainer').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        document.getElementById('openLevelSettingsBtn').addEventListener('click', () => {
+            soundEngine.playTap();
+            document.getElementById('levelSettingsModal').classList.remove('hidden');
+        });
+        document.getElementById('closeLevelSettingsBtn').addEventListener('click', () => {
+            soundEngine.playTap();
+            document.getElementById('levelSettingsModal').classList.add('hidden');
+        });
+        document.getElementById('resetLevelBtn').addEventListener('click', () => {
+            soundEngine.playTap();
+            document.getElementById('levelSettingsModal').classList.add('hidden');
+            startLevel(currentLevel);
+        });
+        document.getElementById('levelSettingsHomeBtn').addEventListener('click', () => {
+            soundEngine.playTap();
+            document.getElementById('levelSettingsModal').classList.add('hidden');
+            showMenuScreen();
+        });
+
+        document.getElementById('modalHomeBtn').addEventListener('click', showMenuScreen);
+        document.getElementById('modalNextBtn').addEventListener('click', () => {
+            soundEngine.playTap();
+            if (currentLevel < 200) {
+                startLevel(currentLevel + 1);
+            } else {
+                showMenuScreen();
+            }
+        });
+    </script>
+</body>
+</html>
